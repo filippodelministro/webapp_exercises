@@ -1,7 +1,7 @@
 
 'use strict';
 
-const sqlite3 = require('sqlite3');
+const sqlite = require('sqlite3');
 const dayjs = require("dayjs");
 
 function Film(id, title, fav = false, watchDate, rating){
@@ -27,14 +27,84 @@ function Film(id, title, fav = false, watchDate, rating){
 }
 
 function FilmLibrary(){
-    const db = new sqlite.Database('films.db', (err) => { if (err) throw err; });
+    const db = new sqlite.Database('films.db', (err) => {if (err) throw err; });
 
+    this.closeDB = () => {
+        try {
+          db.close();
+        }
+        catch (error) {
+          console.log(`Impossible to close the database! ${error}`);
+        }
+      }
 
+    this.getAll = () => {
+        return new Promise((resolve, reject) => {
+            const query = "select * from films";
+            db.all(query, [], (err, rows) => {
+                if(err)
+                    reject(err);
+                else{
+                    const films = rows.map(record => new Film(record.id, record.title, record.favorite == 1, record.watchdate, record.rating));
+                    resolve(films);
+                }
+            });
+        });
+    }
+
+    this.getFav = () => {
+        return new Promise((resolve, reject) => {
+            const query = "select * from films where favorite = 1";
+            db.all(query, [], (err, rows) => {
+                if(err)
+                    reject(err);
+                else{
+                    const films = rows.map(record => new Film(record.id, record.title, record.favorite == 1, record.watchdate, record.rating));
+                    resolve(films);
+                }
+            });
+        });
+    }
 }
 
 
 async function main(){
-    const film = FilmLibrary();
+    const filmLibrary = new FilmLibrary();
+
+    try {
+        // get all the movies
+        console.log('\n****** All the movies in the database: ******');
+        const films = await filmLibrary.getAll();
+        if(films.length === 0) {
+          // If there are not movies in the database it is useless to execute other queries.
+          console.log('No movies yet, try later.');
+          filmLibrary.closeDB();
+          return;
+        }
+        else
+            films.forEach((film) => console.log(`${film}`));
+
+
+        //get all the favourites
+        console.log('\n****** All the favourites movies in the database: ******');
+        const fav = await filmLibrary.getFav();
+        if(fav.length === 0) {
+          // If there are not movies in the database it is useless to execute other queries.
+          console.log('No favourites movies yet, try later.');
+          filmLibrary.closeDB();
+          return;
+        }
+        else
+            fav.forEach((film) => console.log(`${film}`));
+
+        
+    }
+    catch (error) {
+        console.error(`Impossible to retrieve movies! ${error}`);
+        return;
+    } finally {
+        filmLibrary.closeDB();
+    }
 }
 
 main();
