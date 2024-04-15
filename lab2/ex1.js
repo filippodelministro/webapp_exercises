@@ -65,6 +65,36 @@ function FilmLibrary(){
             });
         });
     }
+
+    this.watchedToday = () => {
+        return new Promise((resolve, reject) => {
+            const today = dayjs().format('YYYY-MM-DD');
+            const query = "select * from films where watchdate = ?";
+            db.all(query, [today], (err, rows) => {
+                if(err)
+                    reject(err);
+                else{
+                    const films = rows.map(record => new Film(record.id, record.title, record.favorite == 1, record.watchdate, record.rating));
+                    resolve(films);
+                }
+            });
+        });
+    }
+
+    this.watchedInDate = (date) => {
+        return new Promise((resolve, reject) => {
+            const query = "select * from films where watchdate = ?";
+            db.all(query, [date], (err, rows) => {
+                if(err)
+                    reject(err);
+                else{
+                    const films = rows.map(record => new Film(record.id, record.title, record.favorite == 1, record.watchdate, record.rating));
+                    resolve(films);
+                }
+            });
+        });
+    }
+
 }
 
 
@@ -96,6 +126,32 @@ async function main(){
         }
         else
             fav.forEach((film) => console.log(`${film}`));
+
+
+        //get all the movies watched today
+        console.log('\n****** All the movies watched today: ******');
+        const watchedToday = await filmLibrary.watchedToday();
+        if(fav.length === 0) {
+          // If there are not movies in the database it is useless to execute other queries.
+          console.log('No favourites movies yet, try later.');
+          filmLibrary.closeDB();
+          return;
+        }
+        else
+            watchedToday.forEach((film) => console.log(`${film}`));
+
+        
+        //get all the movies watched in given date
+        console.log('\n****** All the movies in given date: ******');
+        const watchedInDate = await filmLibrary.watchedInDate('2023-03-10');
+        if(fav.length === 0) {
+          // If there are not movies in the database it is useless to execute other queries.
+          console.log('No favourites movies yet, try later.');
+          filmLibrary.closeDB();
+          return;
+        }
+        else
+            watchedInDate.forEach((film) => console.log(`${film}`));
 
         
     }
