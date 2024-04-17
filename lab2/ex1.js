@@ -95,6 +95,33 @@ function FilmLibrary(){
         });
     }
 
+    this.betterFilm = (rank) => {
+        return new Promise((resolve, reject) => {
+            const query = "select * from films where rating >= ?";
+            db.all(query, [rank], (err, rows) => {
+                if(err)
+                    reject(err);
+                else{
+                    const films = rows.map(record => new Film(record.id, record.title, record.favorite == 1, record.watchdate, record.rating));
+                    resolve(films);
+                }
+            });
+        });
+    }
+
+    this.filmByTitle = (t) => {
+        return new Promise((resolve, reject) => {
+        const query = "select * from films where title like ?";
+            db.all(query, ["%"+t+"%"], (err, rows) => {
+                if(err)
+                    reject(err);
+                else{
+                    const films = rows.map(record => new Film(record.id, record.title, record.favorite == 1, record.watchdate, record.rating));
+                    resolve(films);
+                }
+            });
+        });
+    }
 }
 
 
@@ -154,6 +181,34 @@ async function main(){
             watchedInDate.forEach((film) => console.log(`${film}`));
 
         
+        //get all the film with a greater or equal passed rating
+        const rating = 4;
+        console.log('\n****** All the movies with a rating higher than ' + rating + ': ******');
+        const betterFilm = await filmLibrary.betterFilm(rating);
+        if(fav.length === 0) {
+          // If there are not movies in the database it is useless to execute other queries.
+          console.log('No film with higher rank than ' + rating +'\n');
+          filmLibrary.closeDB();
+          return;
+        }
+        else
+            betterFilm.forEach((film) => console.log(`${film}`));
+
+        //search for title
+        const string = "Pulp";
+        console.log('\n****** All the movies containing the string ' + string + ': ******');
+        const filmTitle = await filmLibrary.filmByTitle(string);
+        if(fav.length === 0) {
+          // If there are not movies in the database it is useless to execute other queries.
+          console.log('No film with such name');
+          filmLibrary.closeDB();
+          return;
+        }
+        else
+            filmTitle.forEach((film) => console.log(`${film}`));
+
+            
+
     }
     catch (error) {
         console.error(`Impossible to retrieve movies! ${error}`);
