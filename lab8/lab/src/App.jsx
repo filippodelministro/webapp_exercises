@@ -20,7 +20,10 @@ import { FilmTable } from './components/FilmLibrary';
 
 function App() {
 
-  const activeFilter = 'filter-all';
+  const [filmList, setFilmList] = useState(FILMS);
+
+  // This state contains the active filter
+  const [activeFilter, setActiveFilter] = useState('filter-all');
 
   /**
    * Defining a structure for Filters
@@ -34,7 +37,8 @@ function App() {
     'filter-favorite': { label: 'Favorites', id: 'filter-favorite', filterFunction: film => film.favorite },
     'filter-best': { label: 'Best Rated', id: 'filter-best', filterFunction: film => film.rating >= 5 },
     'filter-lastmonth': { label: 'Seen Last Month', id: 'filter-lastmonth', filterFunction: film => isSeenLastMonth(film) },
-    'filter-unseen': { label: 'Unseen', id: 'filter-unseen', filterFunction: film => film.watchDate ? false : true }
+    'filter-unseen': { label: 'Unseen', id: 'filter-unseen', filterFunction: film => film.watchDate ? false : true },
+    'filter-seen': { label: 'Seen', id: 'filter-seen', filterFunction: film => film.watchDate ? false : true }
   };
 
   const isSeenLastMonth = (film) => {
@@ -49,11 +53,16 @@ function App() {
   //console.log(JSON.stringify(filtersToArray));
 
   // NB: to implicitly return an object in an arrow function, use () around the object {}
-  const filterArray = filtersToArray.map( e => ({filterName: e[0], label: e[1].label}) );
+  // const filterArray = filtersToArray.map( e => ({filterName: e[0], label: e[1].label}) );
   // alternative with destructuring directly in the parameter of the callback 
-  //const filterArray = filtersToArray.map(([filterName, { label }]) => ({ filterName: filterName, label: label }));
-  // or even without explicit property names, since they are the same as the name of the variable
-  //const filterArray = filtersToArray.map(([filterName, { label }]) => ({ filterName, label }));
+  const filterArray = filtersToArray.map(([filterName, { label }]) => ({ filterName: filterName, label: label }));
+
+  function deleteFilm(filmId) {
+    // changes the state by passing a callback that will compute, from the old Array,
+    // a new Array where the filmId is not present anymore
+    setFilmList(filmList => filmList.filter(e => e.id!==filmId));
+  }
+
 
   return (
     <Container fluid>
@@ -65,8 +74,7 @@ function App() {
 
       <Row>
         <Col xs={3}>
-          {/* <Filters items={filters} selected={activeFilter} onSelect={setActiveFilter} /> */}
-          <Filters items={filterArray} selected={activeFilter} />
+          <Filters items={filterArray} selected={activeFilter} onSelected={setActiveFilter} />
         </Col>
 
         <Col xs={9}>
@@ -75,7 +83,8 @@ function App() {
             <Button variant="primary" className="my-2">&#43;</Button>
           </div>
           <FilmTable activeFilter={filters[activeFilter].label}
-            films={FILMS.filter(filters[activeFilter].filterFunction)} />
+            films={filmList.filter(filters[activeFilter].filterFunction)}
+            delete={deleteFilm} />
         </Col>
       </Row>
     </Container>

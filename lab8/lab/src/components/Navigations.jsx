@@ -5,7 +5,7 @@ import { Navbar, Nav, Form } from 'react-bootstrap';
 const Navigation = () => {
 
     return (
-        <Navbar bg="primary" expand="md" variant="dark" className="navbar-padding">
+        <Navbar bg="info" expand="md" variant="dark" className="navbar-padding">
             <Navbar.Brand className="mx-2" href="index.html">
                 <i className="bi bi-collection-play mx-2" />
                 Film Library

@@ -6,7 +6,7 @@ import {ListGroup} from 'react-bootstrap';
  * - the filter that is currenctly selected 
  */ 
 const Filters = (props) => {
-  const {items, selected } = props;
+  const {items, selected, onSelected} = props;
 
   return (
     <ListGroup as="ul" className="my-2">
@@ -14,8 +14,9 @@ const Filters = (props) => {
           items.map( e => {
             return (
                 <ListGroup.Item as="li" key={e.filterName} href={'#'} 
-                  action active={selected === e.filterName ? true : false} >
-                    {e.label}
+                  action active={selected === e.filterName ? true : false}
+                  onClick={ () => onSelected(e.filterName)} >
+                  {e.label}
                 </ListGroup.Item>
             );
           })
